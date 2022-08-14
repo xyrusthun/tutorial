@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Chats{% endblock %}
+{% set active_page = "chats" %}
+
+
+{% block content %}
+  {% autoescape false %}
+
+  <h1 class="pt-3 pb-2"><a href="/chats"><i class="pt-3 pb-2 pe-3 fas fa-angle-left" style="color: #22A7F2;"></i></a>{{ chatConvo.get_ChatTitle(POV) }}<button class="btn btn-danger ms-3 bt-sm" type="button" data-bs-toggle="modal" data-bs-target="#deleteChatModal">Delete Chat</button></h1>
+
+    <div class="row d-flex justify-content-center">
+
+        <div id="chat1" style="border-radius: 15px;">
+          <div class="card-body mb-5">
+
+            {% if chatConvo %}
+              {% for chatMessage in chatConvo.get_messages() %}
+                {% if POV == "user" %}
+                  <!-- User POV -->
+                  {% if chatMessage.get_senderType() == "user" %}
+                    {% if chatMessage.content %}
+                      <div class="d-flex flex-row justify-content-end mb-4">
+                        <div class="p-3 me-3 border rounded-pill" style="background-color: #6BC8FD;">
+                          <p class="small mb-0">{{ chatMessage.content }}</p>
+                        </div>
+                      </div>
+                    {% elif chatMessage.order %}
+                      <div class="d-flex flex-row justify-content-end mb-4">
+                        <div class="card" style="width: 18rem;">
+                          <div class="card-body">
+                            <h5 class="card-title">Order</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">ID #{{ chatMessage.order.get_orderID() }}</h6>
+                            <p class="card-text">Subtotal: S$ {{ chatMessage.order.get_discountPrice() }}</p>
+                            <a href="{{ url_for('orderDetails', orderID=chatMessage.order.get_orderID()) }}" class="card-link">View Order Details</a>
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    {% if chatMessage.content %}
+                      <div class="d-flex flex-row justify-content-start mb-4">
+                        <img class="rounded-circle" src="static/businessLogos/{{ chatConvo.get_businessID() }}.jpg" style="width: 45px; height: 45px;">
+                        <div class="p-3 ms-3 bg-light rounded-pill">
+                          <p class="small mb-0">{{ chatMessage.content }}</p>
+                        </div>
+                      </div>
+                    {% elif chatMessage.order %}
+                      <div class="d-flex flex-row justify-content-start mb-4">
+                        <div class="card" style="width: 18rem;">
+                          <div class="card-body">
+                            <h5 class="card-title">Order</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">ID #{{ chatMessage.order.get_orderID() }}</h6>
+                            <p class="card-text">Subtotal: S$ {{ chatMessage.order.get_discountPrice() }}</p>
+                            <a href="{{ url_for('orderDetails', orderID=chatMessage.order.get_orderID()) }}" class="card-link">View Order Details</a>
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endif %}
+                {% else %}
+                  <!-- Buiness POV -->
+                  {% if chatMessage.get_senderType() == "business" %}
+                    {% if chatMessage.content %}
+                    <div class="d-flex flex-row justify-content-end mb-4">
+                      <div class="p-3 me-3 border rounded-pill" style="background-color: #6BC8FD;">
+                        <p class="small mb-0">{{ chatMessage.content }}</p>
+                      </div>
+                    </div>
+                    {% elif chatMessage.order %}
+                      <div class="d-flex flex-row justify-content-end mb-4">
+                        <div class="card" style="width: 18rem;">
+                          <div class="card-body">
+                            <h5 class="card-title">Order</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">ID #{{ chatMessage.order.get_orderID() }}</h6>
+                            <p class="card-text">Subtotal: S$ {{ chatMessage.order.get_discountPrice() }}</p>
+                            <a href="{{ url_for('orderDetails', orderID=chatMessage.order.get_orderID()) }}" class="card-link">View Order Details</a>
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    {% if chatMessage.content %}
+                      <div class="d-flex flex-row justify-content-start mb-4">
+                        <img class="rounded-circle" src="static/profilePictures/{{ chatConvo.get_userID() }}.jpg" style="width: 45px; height: 45px;">
+                        <div class="p-3 ms-3 bg-light rounded-pill">
+                          <p class="small mb-0">{{ chatMessage.content }}</p>
+                        </div>
+                      </div>
+                      {% elif chatMessage.order %}
+                      <div class="d-flex flex-row justify-content-start mb-4">
+                        <div class="card" style="width: 18rem;">
+                          <div class="card-body">
+                            <h5 class="card-title">Order</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">ID #{{ chatMessage.order.get_orderID() }}</h6>
+                            <p class="card-text">Subtotal: S$ {{ chatMessage.order.get_discountPrice() }}</p>
+                            <a href="{{ url_for('orderDetails', orderID=chatMessage.order.get_orderID()) }}" class="card-link">View Order Details</a>
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+
+            <form method="POST" action="/sendTextMsg">
+              <div class="text-muted shadow rounded-pill bg-light d-flex justify-content-center align-items-center p-2 ms-auto me-auto mt-5 w-75 position-fixed" style="bottom: 10%;">
+                <input type="hidden" name ="chatConvoID" id="chatConvoID" value="{{ chatConvo.get_chatConvoID() }}" />
+                <input type="hidden" name ="senderType" id="senderType" value="{{ POV }}" />
+                <input type="text" class="form-control bg-transparent rounded-pill me-3" style="border:none; !important" id="msgContent" name="msgContent" placeholder="Enter message..." required minlength="1" maxlength="350">
+                  <div class="dropup">
+                    <button type="button" class="btn btn-primary-outline dropdown-toggle me-1" data-bs-toggle="dropdown">
+                      <i class="fas fa-truck"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                      {% if chatConvo.get_ordersBetweenUserAndBusiness() %}
+                        {% for order in chatConvo.get_ordersBetweenUserAndBusiness() %}
+                        <li><a class="dropdown-item" href="{{ url_for('sendOrderMsg', chatConvoID=chatConvo.get_chatConvoID(), senderType=POV, orderID=order.get_orderID()) }}">Order: {{ order.get_orderID() }}</a></li>
+                        {% endfor %}
+                      {% else %}
+                        <li><p>No orders with this business yet.</p></li>
+                      {% endif %}
+                    </ul>
+                  </div>
+                <button class="pe-3 btn rounded-circle text-white" type="submit" value="submit" style="height: 50px; width: 50px; background-color: #6BC8FD;"><i class="fas fa-paper-plane"></i></button>
+              </div>
+            </form>
+          {% endif %}
+
+          </div>
+        </div>
+
+        <!-- Delete Chat Confirmation Modal -->
+        <div class="modal fade" id="deleteChatModal" tabindex="-1" aria-labelledby="deleteChatModal" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title" id="deleteChatModal">Delete Chat</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                      This will delete all chat messages and the entire conversation.
+                    </div>
+                    <div class="modal-footer d-block">
+                        <a href="{{ url_for('deleteChat', chatConvoID=chatConvo.get_chatConvoID()) }}" class="btn btn-danger float-end">Delete Chat</a>
+                    </div>
+                  </div>
+              </div>
+          </div>
+        </div>
+
+    </div>
+
+  {% endautoescape %}
+{% endblock %}

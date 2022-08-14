@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Business Dashboard{% endblock %}
+{% set active_page = "business" %}
+
+{% block content %}
+  {% autoescape false %}
+  
+  <div class="container-fluid overflow-auto">
+    <h1 class="pt-4"><img src="static/businessLogos/{{ business.get_businessID() }}.jpg" class="rounded-circle" style="height: 56px; width: 56px;"></img>&nbsp; {{ business.get_businessName() }} <a href="{{ url_for('editBusiness') }}"><i class="fas fa-pen fa-xs fs-5"></i></a></h1>
+    <p class="pt-1 pb-1 text-muted">ID: {{ business.get_businessID() }}</p>
+    <!--Tabs-->
+    <ul class="nav nav-pills">
+      <li class="nav-item pe-1" role="presentation">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab" aria-selected="true"><i class="fas fa-chart-pie"></i></button>
+      </li>
+      <li class="nav-item pe-1" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#products" type="button" role="tab"><i class="fas fa-box-open"></i></button>
+      </li>    
+      <li class="nav-item pe-1" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#orders" type="button" role="tab"><i class="fas fa-truck"></i></button>
+      </li>
+      <li class="nav-item pe-1" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#chats" type="button" role="tab"><i class="fas fa-comments"></i></button>
+      </li>
+      <li class="nav-item pe-1" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#staff" type="button" role="tab"><i class="fas fa-user-tie"></i></button>
+      </li>
+    </ul>
+
+    <div class="tab-content pt-4">
+      <!--Analytics-->
+      <div class="tab-pane fade show active" id="analytics" role="tabpanel">
+        <h4 class="pb-3">Analytics</h4>
+        
+        <!-- ALL TIME -->
+        <div class="d-flex flex-row gap-3">
+            <div class="card mt-3 p-2 px-3 py-3 w-25">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col mt-0">
+                    <h5 class="card-title">Orders</h5>
+                  </div>
+
+                  <div class="col-auto">
+                    <i class="fas fa-truck text-primary" style="font-size: 1.7em;"></i>
+                  </div>
+                </div>
+                {% if orderDetails_list %}
+                <h1 class="mt-1 mb-3">{{ len(orderDetails_list) }}</h1>
+                {% else %}
+                <h1 class="mt-1 mb-3">0</h1>
+                {% endif %}
+                <div class="mb-0">
+                  <span class="text-muted">All-time</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mt-3 p-2 px-3 py-3 w-25">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col mt-0">
+                    <h5 class="card-title">Visitors</h5>
+                  </div>
+
+                  <div class="col-auto">
+                    <i class="fas fa-user text-warning" style="font-size: 1.7em;"></i>
+                  </div>
+                </div>
+                {% if Analytics.get_AnalyticsObj(business.get_businessID(), "business") %}
+                <h1 class="mt-1 mb-3">{{ len(Analytics.get_AnalyticsObj(business.get_businessID(), "business").get_visitors()) }}</h1>
+                {% else %}
+                <h1 class="mt-1 mb-3">0</h1>
+                {% endif %}
+                <div class="mb-0">
+                  <span class="text-muted">All-time Unique Users</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mt-3 p-2 px-3 py-3 w-25">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col mt-0">
+                    <h5 class="card-title">Earnings</h5>
+                  </div>
+
+                  <div class="col-auto">
+                    <i class="fas fa-money-bill-wave text-success" style="font-size: 1.7em;"></i>
+                  </div>
+                </div>
+
+                <h2 class="mt-1 mb-4">S${{ BusinessAnalytics.calculate_earnings( business.get_businessID() ) }}</h2>
+                <div class="mb-0">
+                  <span class="text-muted">All-time</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mt-3 p-2 px-3 py-3 w-25">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col mt-0">
+                    <h5 class="card-title">Chats</h5>
+                  </div>
+
+                  <div class="col-auto">
+                    <i class="fas fa-comments" style="font-size: 1.7em; color: purple;"></i>
+                  </div>
+                </div>
+                {% if ChatConvoObjs %}
+                <h1 class="mt-1 mb-3">{{ len(ChatConvoObjs) }}</h1>
+                {% else %}
+                <h1 class="mt-1 mb-3">0</h1>
+                {% endif %}
+                <div class="mb-0">
+                  <span class="text-muted">All-time</span>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <!-- PRODUCT ANALYTICS -->
+        <div class="d-flex flex-row gap-3 mb-4">
+            <div class="card mt-3 p-2 px-3 py-3 w-100" style="height: 250px;">
+              <div class="card-body">
+                <h5 class="card-title">Top-Selling Products</h5>
+                
+                <table class="charts-css column show-labels data-spacing-20 show-data-axesvvv">
+                  <thead>
+                      <tr>
+                        <th scope="col"> Product Name </th>
+                        <th scope="col"> Orders </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {% if TopProductsDict %}
+                      {% for product in TopProductsDict %}
+                      <tr>
+                        <th scope="row">{{ product }}</th>
+                        <td class="rounded" style="--size:{{ TopProductsDict[product] }};"></td>
+                      </tr>
+                      {% endfor %}
+                    {% endif %}
+                    </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+        <a data-bs-toggle="modal" href="#resetAnalyticsModal" role="button" class="btn btn-danger mb-5"><i class="fas fa-broom pe-2"></i>Reset Analytics</a>
+        
+        <div class="modal fade" id="resetAnalyticsModal" tabindex="-1" aria-labelledby="resetAnalyticsModal" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title">Reset Analytics</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                      This will reset the following analytics: Visitors and Top-Selling Products. Other analytics cannot be reset.
+                    </div>
+                    <div class="modal-footer d-block">
+                        <a href="{{ url_for('resetAnalytics') }}" class="btn btn-danger float-end">Reset</a>
+                    </div>
+                  </div>
+              </div>
+          </div>
+        </div>
+      </div>
+      <!--Products-->
+      <div class="tab-pane fade show" id="products" role="tabpane2">
+      <h4 class="pb-3">Products</h4>
+        <form>
+          <div class="input-group pt-1 mb-3">
+            <input type="text" id="productsSearchBar" class="form-control" placeholder="Search for product">
+            <div class="input-group-append">
+              <button class="btn btn-secondary" type="button"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <a href="{{ url_for('addProduct') }}" class="btn btn-success ms-2" ><i class="fas fa-shopping-basket"></i> Add Product</a>
+          </div>
+        </form>
+
+        <div class="container mt-5">
+          {% if products_list %}
+          <table class="table table-borderless table-responsive card-1 p-4">
+              <thead>
+                  <tr class="border-bottom">
+                      <th> <span class="ml-2"></span> </th>
+                      <th> <span class="ml-2">Product Name</span> </th>
+                      <th> <span class="ml-2">Quantity</span> </th>
+                      <th> <span class="ml-2">Price</span> </th>
+                      <th> <span class="ml-2">Category</span> </th>
+                      <th> <span class="ml-4">Action</span> </th>
+                  </tr>
+              </thead>
+              <tbody id="productsTableBody">
+                {% for product in products_list %}
+                  <tr class="border-bottom">
+                      <td>
+                          <div class="p-2 d-flex flex-row align-items-center mb-2"> <img src="static/productImages/{{ product.get_productID() }}.png" style="height: 56px; width: 56px;" class="rounded"></div>
+                      </td>
+                      <td>
+                              <div class="d-flex flex-column ml-2"> <span class="productname d-block font-weight-bold">{{ product.get_product_name() }}</span> <small class="text-muted">{{ product.get_productID() }}</small> </div>
+                      </td>
+                      <td>
+                          <div class="p-2"> <span class="font-weight-bold">{{ product.get_quantity() }}</span> </div>
+                      </td>
+                      <td>
+                          <div class="p-2 d-flex flex-column">S${{ product.get_price() }} </div>
+                      </td>
+                      <td>
+                          <div class="p-2 d-flex flex-column">{{ product.get_category() }} </div>
+                      </td>
+                      <td>
+                          <a href="{{ url_for('viewProduct', productID=product.get_productID()) }}" class="btn btn-warning">Edit</a>
+                          <a href="{{ url_for('deleteProduct', productID=product.get_productID()) }}" class="btn btn-danger">Delete</a>
+                      </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+          </table>
+          {% else %}
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div class="ps-2">No products have been created.</div>
+            </div>
+          {% endif %}
+      </div>
+
+    </div>
+      
+
+      <!--Orders-->
+      <div class="tab-pane fade show" id="orders" role="tabpane3">
+          <h4 class="pb-3">Orders</h4>
+
+          <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+              <button class="nav-link active" id="nav-orders-tab" data-bs-toggle="tab" data-bs-target="#nav-orders" type="button" role="tab" aria-controls="nav-orders" aria-selected="true">Current Orders</button>
+              <button class="nav-link" id="nav-cancelledorders-tab" data-bs-toggle="tab" data-bs-target="#nav-cancelledorders" type="button" role="tab" aria-controls="nav-cancelledorders" aria-selected="false">Cancelled Orders</button>
+            </div>
+          </nav>
+
+          <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="nav-orders" role="tabpanel" aria-labelledby="nav-orders-tab">
+            <!--Orders Tab -->
+                <div class="input-group pt-1 mb-2 mt-4">
+                  <input type="text" id="orderSearchBar" class="form-control" placeholder="Search for order ID">
+                  <div class="input-group-append">
+                    <button class="btn btn-secondary" type="button"><i class="fas fa-search"></i> Search</button>
+                  </div>
+                </div>
+                
+                <!--Order Table -->
+                <div class="container mt-5">
+                  {% if orderDetails_list %}
+                  <table class="table table-borderless table-responsive card-1 p-4">
+                      <thead>
+                          <tr class="border-bottom">
+                              <th> <span class="ml-2">Status</span> </th>
+                              <th> <span class="ml-2">Order ID</span> </th>
+                              <th> <span class="ml-2">Customer Name</span> </th>
+                              <th> <span class="ml-2">Subtotal</span> </th>
+                              <th> <span class="ml-2">Order Date</span> </th>
+                              <th> <span class="ml-4">Action</span> </th>
+                          </tr>
+                      </thead>
+                      <tbody id="orderTableBody">
+                          {% for orderDetails in orderDetails_list %}
+                              {% if orderDetails.get_orderStatus() in validStatuses %}
+                              <tr class="border-bottom text-start align-middle">
+                                  <td>
+                                      <div class="p-2 d-flex flex-row align-items-center mb-2">
+                                          {% if orderDetails.get_orderStatus() == 'Processing' %}
+                                          <span class="badge bg-danger p-2" style="font-size:1em;width:112px;" >Processing</span>
+                                          {% elif orderDetails.get_orderStatus() == 'Shipping' %}
+                                          <span class="badge bg-warning p-2" style="font-size:1em;width:112px;" >Shipping</span>
+                                          {% elif orderDetails.get_orderStatus() == 'Delivered' %}
+                                          <span class="badge bg-success p-2" style="font-size:1em;width:112px;" >Delivered</span>
+                                          {% endif %}
+                                      </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2 orderID">{{ orderDetails.get_orderID() }} </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2"> <span class="font-weight-bold">{{ orderDetails.get_customerName() }}</span> </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2 d-flex flex-column"> {{ "$%.2f"|format(orderDetails.get_subTotal()) }} </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2 d-flex flex-column"> {{ orderDetails.get_orderDate() }} </div>
+                                  </td>
+                                  <td>
+                                      <a href="{{ url_for('viewOrder', orderID=orderDetails.get_orderID()) }}" class="btn btn-primary text-nowrap">View Order</a>
+                                  </td>
+                              </tr>
+                              {% endif %}
+                          {% endfor %}
+                      </tbody>
+                  </table>
+                  {% else %}
+                      <div class="alert alert-warning d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="ps-2">No orders have been placed.</div>
+                      </div>
+                  {% endif %}
+                </div>
+            </div>
+            <div class="tab-pane fade" id="nav-cancelledorders" role="tabpanel" aria-labelledby="nav-cancelledorders-tab">
+            <!--Cancelled Orders Tab -->
+                <div class="input-group pt-1 mb-2 mt-4">
+                  <input type="text" id="orderCancelSearchBar" class="form-control" placeholder="Search for order ID">
+                  <div class="input-group-append">
+                    <button class="btn btn-secondary" type="button"><i class="fas fa-search"></i> Search</button>
+                  </div>
+                </div>
+                <!--Cancelled Order Table -->
+                <div class="container mt-5">
+                  <table class="table table-borderless table-responsive card-1 p-4">
+                      <thead>
+                          <tr class="border-bottom">
+                              <th> <span class="ml-2">Status</span> </th>
+                              <th> <span class="ml-2">Order ID</span> </th>
+                              <th> <span class="ml-2">Customer Name</span> </th>
+                              <th> <span class="ml-2">Subtotal</span> </th>
+                              <th> <span class="ml-2">Order Date</span> </th>
+                              <th> <span class="ml-4">Action</span> </th>
+                          </tr>
+                      </thead>
+                      <tbody id="orderCancelTableBody">
+                      {% if orderDetails_list %}
+                          {% for orderDetails in orderDetails_list %}
+                              {% if orderDetails.get_orderStatus() not in validStatuses %}
+                              <tr class="border-bottom text-start align-middle bg-light">
+                                  <td>
+                                      <div class="p-2 d-flex flex-row align-items-center mb-2">
+                                          <span class="badge bg-secondary p-2" style="font-size:1em;width:112px;">Cancelled</span>
+                                      </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2 orderCancelID">{{ orderDetails.get_orderID() }} </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2"> <span class="font-weight-bold">{{ orderDetails.get_customerName() }}</span> </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2 d-flex flex-column"> {{ "$%.2f"|format(orderDetails.get_subTotal()) }} </div>
+                                  </td>
+                                  <td>
+                                      <div class="p-2 d-flex flex-column"> {{ orderDetails.get_orderDate() }} </div>
+                                  </td>
+                                  <td>
+                                      <a href="{{ url_for('viewOrder', orderID=orderDetails.get_orderID()) }}" class="btn btn-primary text-nowrap">View Order</a>
+                                  </td>
+                              </tr>
+                              {% endif %}
+                          {% endfor %}
+                      {% endif %}
+                      </tbody>
+                  </table>
+                </div>
+            </div>
+          </div>
+        
+      </div>
+
+      <!--Chats-->
+      <div class="tab-pane fade show" id="chats" role="tabpane4">
+        <h4 class="pb-3">Chats</h4>
+        <div class="list-group flex-nowrap">
+          {% if ChatConvoObjs %}
+            {% for chatConvo in ChatConvoObjs %}
+              <a href="{{ url_for('chatConvo', chatConvoID=chatConvo.get_chatConvoID(), POV="business") }}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1 text-truncate">{{ chatConvo.get_ChatTitle("Business") }}</h5>
+                  <small>{{ chatConvo.get_ChatActivityDisplay() }}</small>
+                </div>
+                <p class="mb-1 text-truncate">{{ chatConvo.get_lastSentMessage() }}</p>
+              </a>
+            {% endfor %}
+          {% else %}
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div class="ps-2">No chat conversations have been started.</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!--Staff-->
+      <div class="tab-pane fade show" id="staff" role="tabpane5">
+        <h4 class="pb-3">Staff</h4>
+        <form>
+          <div class="input-group pt-1 mb-3">
+            <input type="text" id="staffSearchBar" class="form-control" placeholder="Search by Staff Name">
+            <div class="input-group-append">
+              <button class="btn btn-secondary" type="button"><i class="fas fa-search"></i> Search</button>
+            </div>
+
+            <div class="input-group-append ms-2">
+              <a data-bs-toggle="modal" href="#addStaffModal" role="button" class="btn btn-primary"><i class="fas fa-user-tie"></i> Add Staff</a>
+            </div>
+          </div>
+        </form>
+      
+      <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModal" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title">Add Staff</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <form method="POST" action="/addStaff">
+                          <div class="mb-3">
+                              <label class="form-label">Staff's User ID</label>
+                              <input type="text" class="form-control" id="userID" name="userID" placeholder="User ID" required/>
+                          </div>
+                          <div class="mb-3">
+                              <label class="form-label">Staff Position</label>
+                              <input type="text" class="form-control" id="staffPosition" name="staffPosition" placeholder="Position" required/>                          
+                          </div>
+                          <div class="modal-footer d-block">
+                              <p class="float-start">Ask for their User ID found in profile.</p>
+                              <button type="submit" value="login" class="btn btn-primary float-end">Add</button>
+                          </div>
+                      </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <!-- Staff Table-->
+          <div class="container mt-5">
+            <table class="table table-borderless table-responsive card-1 p-4">
+                <thead>
+                    <tr class="border-bottom">
+                        <th> <span class="ml-2"></span> </th>
+                        <th> <span class="ml-2">Staff Name</span> </th>
+                        <th> <span class="ml-2">Position</span> </th>
+                        <th> <span class="ml-2">E-mail</span> </th>
+                        <th> <span class="ml-4">Action</span> </th>
+                    </tr>
+                </thead>
+                <tbody id="staffTableBody">
+                {% if business.get_businessStaff() %}
+                    {% for staff in business.get_businessStaff() %}
+                        {% if User.get_userByID(staff.get_staffUserID()) %}
+                        <tr class="border-bottom">
+                            <td>
+                                <div class="p-2 d-flex flex-row align-items-center mb-2"> <img src="static/profilePictures/{{ staff.get_staffUserID() }}.jpg" style="height: 56px; width: 56px;" class="rounded-circle"></div>
+                            </td>
+                            <td>
+                                    <div class="d-flex flex-column ml-2"> <span class="d-block font-weight-bold staffName">{{ User.get_userByID(staff.get_staffUserID()).get_name() }}</span> <small class="text-muted">{{ staff.get_staffUserID() }}</small> </div>
+                            </td>
+                            <td>
+                                <div class="p-2"> <span class="font-weight-bold">{{ staff.get_staffPosition() }}</span> </div>
+                            </td>
+                            <td>
+                                <div class="p-2 d-flex flex-column"> {{ User.get_userByID(staff.get_staffUserID()).get_email() }} </div>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('removeStaff', staffID=staff.get_staffUserID()) }}" class="btn btn-danger {% if staff.get_staffPosition() == 'Owner' %}disabled{% endif %}">Remove</a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // PRODUCTS SEARCHBAR
+    const productsSearchBar = document.getElementById('productsSearchBar').addEventListener('input', updateValue);
+    const productsTableBody = document.getElementById('productsTableBody');
+
+    function updateValue(search) {
+      var searchVal = search.target.value.toUpperCase();
+      var elements = productsTableBody.getElementsByTagName("tr");
+
+      for (i = 0; i < elements.length; i++) {
+        a = elements[i].getElementsByClassName("productname")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(searchVal) > -1) {
+          elements[i].style.display = "";
+        } else {
+          elements[i].style.display = "none";
+        }
+      }
+
+    }
+
+    // STAFF SEARCHBAR
+    const staffSearchBar = document.getElementById('staffSearchBar').addEventListener('input', updateStaffValue);
+    const staffTableBody = document.getElementById('staffTableBody');
+
+    function updateStaffValue(search) {
+      var searchVal = search.target.value.toUpperCase();
+      var elements = staffTableBody.getElementsByTagName("tr");
+
+      for (i = 0; i < elements.length; i++) {
+        a = elements[i].getElementsByClassName("staffName")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(searchVal) > -1) {
+          elements[i].style.display = "";
+        } else {
+          elements[i].style.display = "none";
+        }
+      }
+
+    }
+
+    // ORDER SEARCHBAR
+    const orderSearchBar = document.getElementById('orderSearchBar').addEventListener('input', updateOrderValue);
+    const orderTableBody = document.getElementById('orderTableBody');
+
+    function updateOrderValue(search) {
+      var searchVal = search.target.value.toUpperCase();
+      var elements = orderTableBody.getElementsByTagName("tr");
+
+      for (i = 0; i < elements.length; i++) {
+        a = elements[i].getElementsByClassName("orderID")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(searchVal) > -1) {
+          elements[i].style.display = "";
+        } else {
+          elements[i].style.display = "none";
+        }
+      }
+
+    }
+
+    // CANCELLED ORDERS SEARCHBAR
+    const orderCancelSearchBar = document.getElementById('orderCancelSearchBar').addEventListener('input', updateOrderCancelValue);
+    const orderCancelTableBody = document.getElementById('orderCancelTableBody');
+
+    function updateOrderCancelValue(search) {
+      var searchVal = search.target.value.toUpperCase();
+      var elements = orderCancelTableBody.getElementsByTagName("tr");
+
+      for (i = 0; i < elements.length; i++) {
+        a = elements[i].getElementsByClassName("orderCancelID")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(searchVal) > -1) {
+          elements[i].style.display = "";
+        } else {
+          elements[i].style.display = "none";
+        }
+      }
+
+    }
+  </script>
+  {% endautoescape %}
+{% endblock %}

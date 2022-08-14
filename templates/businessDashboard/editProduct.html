@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Business Mode{% endblock %}
+{% set active_page = "business" %}
+
+{% block content %}
+  {% autoescape false %}
+  <div class="container-fluid overflow-auto">
+    <h1 class="pt-4 pb-2"><a href="{{ url_for('business') }}"><i class="pt-3 pb-2 pe-3 fas fa-angle-left" style="color: #22A7F2;"></i></a>Edit Product</h1>
+    <div>
+      <form method="POST" action="{{ url_for('editProduct', productID=product.get_productID()) }}" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label" >Product Image:</label>
+          <input class="form-control" type="file" name="product_image" id="file" required/>
+          <label class="form-label">Product Name:</label>
+          <input class="form-control" name="product_name" type="text" value="{{ product.get_product_name() }}" required/>
+          <div>
+            <label for="category" class="form-label">Product Category:</label>
+            <input class="form-control" name="category" type="text" value="{{ product.get_category() }}"  required/>
+            <small id="category" class="form-text text-muted">Make sure to standardise the category names.</small>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Product Price:</label>
+            <input class="form-control" type="number" name="price" value="{{ product.get_price() }}" required/ >
+            <label class="form-label">Product Quantity:</label>
+            <input class="form-control" type="number" name="quantity" value="{{ product.get_quantity() }}" required/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Item Description:</label>
+            <textarea class="form-control mb-2" name="description" minlength="1" maxlength="150" required>{{ product.get_description() }}</textarea>
+            <small id="description" class="form-text text-muted">Max length: 150</small>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Product</button>
+      </form>
+    </div>
+  </div>
+  {% endautoescape %}
+{% endblock %}

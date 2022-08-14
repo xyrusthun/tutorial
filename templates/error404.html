@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <div class="page-wrap d-flex flex-row align-items-center mt-5">
+      <div class="container">
+          <div class="row justify-content-center">
+              <div class="col-md-12 text-center mt-4">
+                  <span class="display-1 d-block" style="">404</span>
+                  <p>The page you are looking for was not found! :(</p>
+                  <img src="{{ image_url }}" class="img-fluid rounded mb-4" style="max-width:40vw;max-height:30vh;object-fit:cover;">
+                  <div><a href="{{ url_for('home') }}" class="btn btn-primary btn-lg text-nowrap">Back to Home</a></div>
+              </div>
+          </div>
+      </div>
+  </div>
+  
+{% endblock %}

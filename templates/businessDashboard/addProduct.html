@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Business Mode{% endblock %}
+{% set active_page = "business" %}
+
+{% block content %}
+  {% autoescape false %}
+  <div class="container-fluid overflow-auto">
+    <h1 class="pt-4 pb-2"><a href="{{ url_for('business') }}"><i class="pt-3 pb-2 pe-3 fas fa-angle-left" style="color: #22A7F2;"></i></a>Add Product</h1>
+    <div>
+      <form method="POST" action="{{ url_for('createProduct') }}" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">Product Image:</label>
+          <input class="form-control" type="file" name="product_image" id="file" required/>
+          <label class="form-label">Product Name:</label>
+          <input class="form-control" name="product_name" type="text" required/>
+          <div>
+            <label for="category" class="form-label">Product Category:</label>
+            <input class="form-control" name="category" type="text" required/>
+            <small id="category" class="form-text text-muted">Make sure to standardise the category names.</small>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Product Price:</label>
+            <input class="form-control" type="number" name="price" min="1" required/ >
+            <label class="form-label">Product Quantity:</label>
+            <input class="form-control" type="number" name="quantity" min="1" required/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label class="form-label">Item Description:</label>
+            <textarea class="form-control mb-2" name="description" minlength="1" maxlength="150" required></textarea>
+            <small id="description" class="form-text text-muted">Max length: 150</small>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Product</button>
+      </form>
+    </div>
+  </div>
+  {% endautoescape %}
+{% endblock %}

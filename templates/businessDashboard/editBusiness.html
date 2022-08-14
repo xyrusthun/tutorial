@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Business Edit{% endblock %}
+{% set active_page = "business" %}
+
+{% block content %}
+  {% autoescape false %}
+
+    <h1 class="pt-4"><a href="{{ request.referrer }}"><i class="pt-3 pb-2 pe-3 fas fa-angle-left" style="color: #22A7F2;"></i></a>Business Profile</h1>
+    <hr><br>
+
+    <form method="POST" action="/editBusinessConfirm" enctype="multipart/form-data">
+      <!--Form control -->
+        <div class="form-group mb-3">
+          <label for="businessName">Business Name (between 6 and 30 characters):</label>
+          <input type="text" class="form-control" id="businessName" name="businessName" value="{{ business.get_businessName() }}" required minlength="6" maxlength="30">
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="businessDescription">Business Description (between 6 and 70 characters):</label>
+          <input type="text" class="form-control" id="businessDescription" name="businessDescription" value="{{ business.get_businessDescription() }}" required minlength="6" maxlength="70">
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="businessEmail" class="form-label">Email address:</label>
+          <input type="email" class="form-control" id="businessEmail" name="businessEmail" aria-describedby="emailHelp" value="{{ business.get_businessEmail() }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="businessNumber" class="form-label">Business Contact Number:</label>
+          <input type="text" class="form-control" id="businessNumber" name="businessNumber" value="{{ business.get_businessNumber() }}" required minlength="8" maxlength="8"/>
+        </div>
+
+        <div class="mb-3">
+          <label for="logo" class="form-label">Business Logo Image:</label>
+          <input type="file" class="form-control" name="logo" id="logo" value="{{ business.get_businessLogo }}" accept=".png,.jpg" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="thumbnail" class="form-label">Business Thumbnail Image:</label>
+          <input type="file" class="form-control" name="thumbnail" id="thumbnail" accept=".png,.jpg" required>
+          <small id="thumbnailHelp" class="form-text text-muted">Note: Recommended thumbnail size is 1280x350.</small>
+        </div>
+
+        <div>
+          <label for="businessType" class="form-label">Type of Business:</label>
+          <select class="form-select mb-3" name="businessType" id="businessType" required>
+            <option value = "">*Please Select*</option>
+            {% for type in businessTypes %}
+              {% if type == business.get_businessType() %}
+                  <option value="{{type}}" selected>{{type}}</option>
+              {% else %}
+                  <option value="{{type}}">{{type}}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#deleteBusinessModal">Delete Business</button>
+      
+      </form>
+
+  <!-- Delete Business Confirmation Modal -->
+  <div class="modal fade" id="deleteBusinessModal" tabindex="-1" aria-labelledby="deleteBusinessModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteBusinessModal">Delete Business</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="alert alert-danger" role="alert">
+                This will delete all stored business data including Products, Staff, Orders, etc.
+              </div>
+              <div class="modal-footer d-block">
+                  <a href="{{ url_for('deleteBusiness') }}" class="btn btn-danger float-end">Delete Business</a>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+  {% endautoescape %}
+{% endblock %}

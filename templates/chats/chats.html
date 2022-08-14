@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Chats{% endblock %}
+{% set active_page = "chats" %}
+
+{% block content %}
+  <h1 class="pt-3 pb-2">Chats</h1>
+
+  <div class="list-group flex-nowrap">
+      {% if ChatConvoObjs %}
+        {% for chatConvo in ChatConvoObjs %}
+          <a href="{{ url_for('chatConvo', chatConvoID=chatConvo.get_chatConvoID(), POV="user") }}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1 text-truncate">{{ chatConvo.get_ChatTitle("User") }}</h5>
+              <small>{{ chatConvo.get_ChatActivityDisplay() }}</small>
+            </div>
+            <p class="mb-1 text-truncate">{{ chatConvo.get_lastSentMessage() }}</p>
+          </a>
+        {% endfor %}
+      {% else %}
+        <h5 class="pb-4">You don't have any chats, start a chat with a business on their menu page at <a href="{{ url_for('home') }}">Home</a>!</h5>
+    {% endif %}
+  </div>
+
+{% endblock %}

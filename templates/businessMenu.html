@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Business Menu {% endblock %}
+
+
+{% block content %}
+  {% autoescape false %}
+<script src="https://code.jquery.com/jquery-1.6.4.js"></script>
+<script>
+  var food = "https://sellerseal-insecure.zacbytes.repl.co/getBusinessInfo?businessID={{ businessID }}";
+  $.getJSON(food, function(data){
+    document.getElementById("businessName").innerHTML = data.Name
+    document.getElementById("businessDescription").innerHTML = data.Description
+  });
+</script>
+
+<div>
+    <!--Business Thumbnail -->
+    {% if business %}
+    <div class="card mb-2 w-100">
+      <img src="static/businessThumbnails/{{ businessID }}.jpg" class="card-img" style="object-fit:cover; height:22rem;">
+      <div class="card-img-overlay text-light align-items-center" style="background: rgba(0, 0, 0, 0.4);">
+        <h1><a href="{{ url_for('home') }}"><i class="pt-3 pb-2 pe-3 fas fa-chevron-circle-left"></i></a></h1>
+        <h1 class="card-title text-center fw-bold display-2" id="businessName">Name</h1>
+        <p class="card-text text-center" id="businessDescription">Description</p>
+        <div class="card-text text-center">
+            <a href="{{ url_for('createChatConvo', userID=session["userID"],businessID=businessID) }}" type="button" class="btn btn-primary"><i class="fas fa-comments"></i>&nbsp;&nbsp;Start Chat</a>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <h1><i class="pt-3 pb-2 pe-3 fas fa-chevron-circle-left"></i></a>No business found.</h1>
+    {% endif %}
+    <!--Thumbnail End-->
+    
+    {% if products_list %}
+        {% for category in categories %}
+          <div class="card mb-4">
+            <h5 class="card-header p-2 fs-5">{{ category }}</h5>
+            {% for product in products_list %}
+              <!--Products-->
+              {% if product.get_category() == category %}
+                <div class="card-body">
+                  <ul class="list-group list-group-flush rounded">
+                    <a href="{{ url_for('viewItem', businessID=businessID, productID=product.get_productID()) }}" class="list-group-item list-group-item-action rounded d-flex justify-content-between align-items-start">
+                      <!-- Left Side -->
+                      <div class="ms-4 me-auto">
+                        <div class="fw-bold fs-5">{{ product.get_product_name() }}</div>
+                        <div class="text-muted fs-6">{{ product.get_description() }}</div>
+                        <p class="fw-bold">S$ {{ product.get_price() }}</p>
+                      </div>
+                      <!-- Right Side -->
+                      <div class="px-3">
+                          <img class="rounded" src="static/productImages/{{ product.get_productID() }}.png" style="object-fit:cover; height: 84px; width: 84px;">
+                      </div>
+                    </a>
+                  </ul>
+                </div>
+              {% endif %}
+              <!--Products end-->
+            {% endfor %}
+          </div>
+        {% endfor %}
+    {% else %}
+      <div class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="ps-2">This business has not set any products for sale yet.</div>
+      </div>
+    {% endif %}
+    <p class="text-center text-muted">Business ID: {{ businessID }}</p>
+</div>
+
+  {% endautoescape %}
+{% endblock %}

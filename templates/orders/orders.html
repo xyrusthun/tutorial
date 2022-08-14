@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Orders{% endblock %}
+{% set active_page = "orders" %}
+
+{% block content %}
+  {% autoescape false %}
+  <h1 class="pt-3 pb-2">Orders</h1>
+
+  <!--User Orders -->
+  <div class="container-lg d-grid gap-3 list-group mb-4">
+    {% if orderDetails_list %}
+      {% for order in orderDetails_list %}
+      <a href="{{ url_for('orderDetails', orderID=order.get_orderID()) }}" class="align-items-center d-flex justify-content-between border border-3 rounded-2 list-group-item list-group-item-action {% if order.get_orderStatus() == 'Cancelled'%}bg-light{% endif %}">
+        <!--Left -->
+        <div class="d-flex align-items-center">
+            <div>
+                <img src="static/businessLogos/{{ order.get_businessID() }}.jpg" class="img-thumbnail" style="object-fit:cover;height: 84px; width: 84px;">
+            </div>
+            
+            <div class="px-3">
+              <p class="mb-0 mt-3">Order #{{ order.get_orderID() }}</p>
+              <div class="d-flex" style="--bs-breadcrumb-divider: '|';">
+                <ul class="breadcrumb mb-0">
+                  <li class="breadcrumb-item text-muted">{{ order.get_businessName()|truncate(16,true) }}</li>
+                  {# comment: first parameter for length, true is if want to truncate last keyword or exactly at length #}
+                  <li class="breadcrumb-item text-muted">{{ "%d items"|format( len(order.get_productIDs()) ) }}</li>
+                </ul>
+              </div>
+
+              <p class="fw-bold fs-4 mt-1">{{ "$%.2f"|format(order.get_subTotal()) }}</p>
+            </div>
+        </div>
+        <!--Right -->
+        <div class="px-2"> 
+          <p class="mb-0 text-muted">{{ order.get_orderDate() }}</p>
+          {% if order.get_orderStatus() == 'Processing' %}
+          <p class="mt-4 text-danger">Processing</p>
+          {% elif order.get_orderStatus() == 'Shipping' %}
+          <p class="mt-4 text-warning">Shipping</p>
+          {% elif order.get_orderStatus() == 'Delivered' %}
+          <p class="mt-4 text-success">Delivered</p>
+          {% elif order.get_orderStatus() == 'Cancelled' %}
+          <p class="mt-4 text-secondary">Cancelled</p>
+          {% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    {% else %}
+      <h5 class="pb-4">You have no orders, please check-out your <a href="{{ url_for('cart') }}">Cart</a>!</h5>
+    {% endif %}
+    
+  </div>
+  
+  {% endautoescape %}
+{% endblock %}

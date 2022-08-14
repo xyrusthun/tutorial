@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Business Mode{% endblock %}
+{% set active_page = "business" %}
+
+{% block content %}
+  {% autoescape false %}
+  <div class="container-fluid overflow-auto">
+    <h1 class="pt-4 pb-2"><a href="{{ url_for('business') }}"><i class="pt-3 pb-2 pe-3 fas fa-angle-left" style="color: #22A7F2;"></i></a>Order ID #{{order.get_orderID()}}</h1>
+    
+    <form method="POST" action="{{ url_for('editOrder', orderID=order.get_orderID()) }}" >
+      <!--Form control -->
+      <div class="list-group list-group-flush mb-4">
+        
+        <!--Order Details -->
+        <div class="list-group-item">
+          <h4 class="mb-4">Order Details:</h4>
+          <div class="m-2">
+            <div class="card-body bg-light mb-4">
+              <div>
+                  <p class="fw-bold">Customer Details</p>
+                  {% if orderUser %}
+                  <p>Customer Name: {{ orderUser.get_name() }}</p>
+                  <p>Customer ID: {{ orderUser.get_userID() }}</p>
+                  {% else %}
+                  <p>Customer Name: Deleted User</p>
+                  <p>Customer ID: Deleted User ID</p>
+                  {% endif %}
+              </div>
+              <div class="my-4">
+                  <p class="fw-bold">Shipping Address</p>
+                  {% if orderDetails.get_shippingAddress() %}
+                  <p>{{ orderDetails.get_shippingAddress().get_line1() }}</p>
+                  <p>{{ orderDetails.get_shippingAddress().get_line2() }}</p>
+                  <p>{{ orderDetails.get_shippingAddress().get_city() }}</p>
+                  <p>{{ orderDetails.get_shippingAddress().get_zipCode() }}</p>
+                  {% else %}
+                  <p>No address assigned</p>
+                  {% endif %}
+              </div>
+              {% if orderDetails.get_orderStatus() == 'Processing' %}
+              <p class="badge bg-danger p-2" style="font-size:1em;width:112px;">Processing</p>
+              {% elif orderDetails.get_orderStatus() == 'Shipping' %}
+              <p class="badge bg-warning p-2" style="font-size:1em;width:112px;">Shipping</p>
+              {% elif orderDetails.get_orderStatus() == 'Delivered' %}
+              <p class="badge bg-success p-2" style="font-size:1em;width:112px;">Delivered</p>
+              {% elif orderDetails.get_orderStatus() == 'Cancelled' %}
+              <p class="badge bg-secondary p-2" style="font-size:1em;width:112px;">Cancelled</p>
+              {% endif %}
+            </div>
+            <div class="row">
+              <div class="col">
+                <label for="subTotal" class="form-label">Subtotal</label>
+                <input class="form-control mb-3" type="text" placeholder="{{ "$%.2f"|format(orderDetails.get_subTotal()) }}" id="subTotal" disabled/>
+              </div>
+              <div class="col">
+                <label for="shippingCost" class="form-label">Shipping Costs</label>
+                <input class="form-control mb-3" type="number" placeholder="{{ "$%.2f"|format(orderDetails.get_shippingCost()) }}" min="1" id="shippingCost" name="shippingCost" disabled/>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <label for="orderDate" class="form-label">Order Date</label>
+                <input class="form-control mb-3" type="date" value="{{ orderDetails.formatDate(orderDetails.get_orderDate()) }}" id="orderDate" disabled required/>
+              </div>
+              <div class="col">
+                <label for="deliveryDate" class="form-label">Delivery Date</label>
+                {% if orderDetails.get_deliveryDate() %}
+                <input class="form-control mb-3" type="date"id="deliveryDate" min='{{ todayDate }}' name="deliveryDate" value="{{ orderDetails.formatDate(orderDetails.get_deliveryDate()) }}" required/>
+                {% else %}
+                <input class="form-control mb-3" type="date"id="deliveryDate" min='{{ todayDate }}' name="deliveryDate" required/>
+                {% endif %}
+              </div>
+            </div>
+              {% if orderDetails.get_orderStatus() != 'Cancelled'%}
+                  <select class="form-select mt-3" name="orderStatus" required>
+                    <option selected class=">Change Order Status</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipping">Shipping</option>
+                    <option value="Delivered">Delivered</option>
+                  </select>
+              {% endif %}
+          </div>
+          {% if orderDetails.get_orderStatus() != 'Cancelled'%}
+              <div class="mx-2 my-4">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">Cancel Order</button>
+              </div>
+          {% endif %}
+        </div>
+
+        
+
+        <!--Ordered Items -->
+        <div class="list-group-item">
+          <h4 class="mt-2">Ordered Items:</h4>
+
+
+            <div class="d-grid gap-3 my-3 overflow-auto">
+              <!--Items begin here -->
+              {% for index, product in enumerate(products) %}
+                  
+                  <div class="align-items-center d-flex justify-content-between border border-3 rounded-2 p-3">
+                      {% if product != None %}
+                      <!--Left -->
+                      <div class="d-flex align-items-center">
+                        <div>
+                            <img src="static/productImages/{{ product.get_productID() }}.png" class="img-thumbnail" style="object-fit:cover;height: 84px; width: 84px;">
+                        </div>
+                        
+                      <div class="px-3">
+                          <p class="mb-2 mt-0">{{ product.get_product_name() }}</p>
+                      </div>
+                      </div>
+                      <!--Right -->
+                      <div class="p-2 text-nowrap"> 
+                        <p class="fw-bold fs-4">{{ "$%.2f"|format(float(product.get_price())) }}</p>
+                      </div>
+                      {% else %}
+                      <div class="px-3">
+                          <p class="mb-2 mt-0">Product has been deleted.</p>
+                      </div>
+                      {% endif %}
+                  </div>
+              {% endfor %}
+              
+
+            </div>
+        </div>
+    
+
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Cancelling Order Modal for Confirmation -->
+  <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelOrderModal">Cancel Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="alert alert-danger" role="alert">
+                <p class="fw-bold"><i class="fas fa-exclamation-triangle"></i> Are you sure?</p>
+                This will cancel the order and you won't be able to edit it's order information anymore. It will also be displayed to the customer as a cancelled order, essentially archiving it.
+              </div>
+              <div class="modal-footer d-block">
+                  <a href="{{ url_for('cancelOrder', orderID=order.get_orderID(), status="businessCancel") }}" class="btn btn-danger float-end">Cancel Order</a>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+  {% endautoescape %}
+{% endblock %}

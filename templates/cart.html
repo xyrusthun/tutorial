@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}SellerSeal - Cart{% endblock %}
+{% set active_page = "cart" %}
+
+{% block content %}
+  {% autoescape false %}
+<!--Paypal Sandbox-->
+<script src="https://www.paypal.com/sdk/js?client-id=AQYBpBSneLniqC7J2t-LvjWoq-1kDBHccrlfvbQJze1yl8clAu4ZiOXp75MEoxNTIgK7KFnCxNJUerSl&currency=SGD"></script>
+
+  <h1 class="pt-3">Your Cart</h1>
+
+  {% if userCart %}
+    <h4 >{{ userCart.get_businessName() }}</h4>
+    <p class="text-muted pb-4">Note: Items in one cart can only have products from the same business. You can reset products in cart by clearing them/adding a product from another business.</p>
+    
+    <!-- Order Items -->
+    <div class="card mb-4">
+      <h5 class="card-header">Order Items</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          {% for index, product in enumerate(products) %}
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <!-- Left Side -->
+            <div class="image-parent" style="max-width: 40px;">
+                <img src="static/productImages/{{ product.get_productID() }}.png" class="rounded img-fluid">
+            </div>
+            <div class="ms-2 me-auto">
+              <div class="fw-bold">{{ product.get_product_name() }}</div>
+              <p>{{ product.get_description() }}</p>
+            </div>
+            <!-- Right Side -->
+            <div class="input-group w-auto">
+              <span class="input-group-text">S$ {{ product.get_price() }}</span>
+              <a class="btn btn-danger" href="{{ url_for('deleteCartProduct', productArrayIndex=index) }}" type="button"><i class="fas fa-trash-alt"></i> Remove</a>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Order Information -->
+    <div class="card mb-4">
+      <h5 class="card-header">Order Information</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <!-- Left Side -->
+            <div class="ms-2 me-auto fw-bold">Shipping Address</div>
+            <!-- Right Side -->
+            <p>{{ userAddress }}</p>
+            <a href="/profile" class="btn btn-primary btn-sm ms-2">Change Address</a>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <!-- Left Side -->
+            <div class="ms-2 me-auto fw-bold">Seal Points</div>
+            <!-- Right Side -->
+            <form method="POST" action="/setCartPointsRedeemed">
+            <div class="input-group w-auto">
+              <span class="input-group-text" id="addon-wrapping">Points to Redeem</span>
+              <input type="number" class="form-control" id="pointsRedeemed" name="pointsRedeemed" value="{{ userCart.get_pointsRedeemed() }}" min="0" max="{{ userCart.get_userCurrentPoints() }}" required>
+              <button class="btn btn-primary" type="submit" value="submit">Set</button>
+            </div>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+      <!-- Order Summary -->
+    <div class="card mb-4">
+      <h5 class="card-header">Order Summary</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto fw-bold">Points Earned</div>
+            <p>+ {{ userCart.get_pointsEarned() }}</p>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto fw-bold">Merchandise Subtotal</div>
+            <p>S$ {{ userCart.get_totalPrice() }}</p>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto fw-bold">Points Redeemed</div>
+            <p>- S$ {{ round(userCart.get_pointsRedeemed()/200,2) }}</p>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto fw-bold">Shipping Cost</div>
+            <p>S$ {{ userCart.get_shippingCost() }}</p>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto fw-bold">Final Subtotal</div>
+            <p class="text-primary">S$ {{ userCart.get_subTotal() }}</p>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+
+
+    <!-- Checkout -->
+    {% if userAddress != "No Saved Address" %}
+        <div class="form-group pb-4">
+          <div id="paypal-button-container" style="text-align:center;margin:auto;"></div>
+
+          <!--Hidden Elements -->
+          <p class="text-success text-center" style="display:none;" id="proceedText"><i class="fas fa-check"></i> Payment success! If it hasn't redirected you, you can press the 'Finalise Order' button to safely leave the page now.</p>
+          <p class="text-danger text-center" style="display:none;" id="errorText">An unexpected error occured with the PayPal payment. Please try again and make sure all the information is correct.</p>
+
+          <div class="pb-4">
+            <div class="form-group float-right">
+                <form method="POST" action="{{ url_for( 'createOrder', userID=user.get_userID() ) }}">
+                    <button class="btn btn-success btn-lg float-end" style="display:none;" id="proceedButton">Finalise Order</a>
+                </form>
+            </div> 
+          </div>
+
+        </div>
+        
+        <!--PayPal JavaScript SDK-->
+        <script>
+        
+        paymentApproved = false //to ensure data cant be lost if refresh/backtrack
+
+        paypal.Buttons({
+
+
+          // Sets up the transaction when a payment button is clicked
+
+          createOrder: function(data, actions) {
+
+            return actions.order.create({
+
+              purchase_units: [{
+
+                amount: {
+
+                  value: {{ userCart.get_subTotal() }} // Can reference variables or functions. Example: `value: document.getElementById('...').value`
+
+                }
+
+              }]
+
+            });
+
+          },
+
+
+          // Finalize the transaction after payer approval
+
+          onApprove: function(data, actions) {
+
+            return actions.order.capture().then(function(orderData) {
+
+              // Successful capture! For dev/demo purposes:
+
+                  console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+
+                  var transaction = orderData.purchase_units[0].payments.captures[0];
+
+                  console.log('Transaction '+ transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
+
+                  document.getElementById('paypal-button-container').style.display = 'none'
+                  //Display of new elements
+                  document.getElementById('proceedButton').style.display = 'block'
+                  document.getElementById('proceedText').style.display = 'block'
+                  document.getElementById('errorText').style.display = 'none' //In case
+
+                  document.getElementById('proceedButton').click()
+                  paymentApproved = true
+
+              // When ready to go live, remove the alert and show a success message within this page. For example:
+
+              // var element = document.getElementById('paypal-button-container');
+
+              // element.innerHTML = '';
+
+              // element.innerHTML = '<h3>Thank you for your payment!</h3>';
+
+              // Or go to another URL:  actions.redirect('thank_you.html');
+
+            });
+
+          },
+
+          onError: function (err) {
+
+            // Error with handling payment
+            console.log('An error happened')
+            console.log(err)
+            document.getElementById('errorText').style.display = 'block'
+          }
+
+        }).render('#paypal-button-container');
+
+
+
+      window.onbeforeunload = function () { //Prevent accidental page reload/etc. after completion of payment
+        if (paymentApproved == true) {
+            return "Are you sure? If you reload this page, you may lose information about your payment! (You can ignore if pressing proceed button after payment";
+        }
+        else {
+            //Don't return anything
+        }
+      }
+
+      </script>
+  {% else %}
+  <p class="text-danger text-center fw-bold">Please make sure you have a saved address before you can proceed to checkout.</p>
+  {% endif %}
+
+  {% else %}
+    <h5 class="pb-4">Cart is empty, please add products from <a href="{{ url_for('home') }}">Home</a>.</h5>
+  {% endif %}
+  {% endautoescape %}
+{% endblock %}

@@ -1,0 +1,54 @@
+<nav class="navbar navbar-expand-sm navbar-light bg-light sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand me-2" href="{{ url_for('home') }}">
+      <img
+        src="static/logo_blue.png"
+        height="40"
+        style="margin-top: -1px;"
+      />
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mynavbar">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="{{ 'nav-link active' if active_page == 'home' else 'nav-link' }}" href="{{ url_for('home') }}">Home</a>
+        </li>
+        <li class="nav-item position-relative {% if 'numCartItems' in session %}me-3{% endif %}">
+          <a class="{{ 'nav-link active' if active_page == 'cart' else 'nav-link' }}" href="{{ url_for('cart') }}">Cart</a> 
+          {% if 'numCartItems' in session %}
+          <span class="position-absolute top-0 ms-1 mt-2 start-100 translate-middle badge rounded-pill bg-danger">{{ session['numCartItems'] }}</span>
+          {% endif %}
+        </li>
+        <li class="nav-item">
+          <a class="{{ 'nav-link active' if active_page == 'orders' else 'nav-link' }}" href="{{ url_for('orders') }}">Orders</a>
+        </li>
+        <li class="nav-item">
+          <a class="{{ 'nav-link active' if active_page == 'chats' else 'nav-link' }}" href="{{ url_for('chats') }}">Chats</a>
+        </li>
+        <li class="nav-item">
+          <a class="{{ 'nav-link active' if active_page == 'business' else 'nav-link' }}" href="{{ url_for('business') }}">Business</a>
+        </li>
+      </ul>
+      {% if 'name' in session %}
+        <a>{{ session['name'] }}&nbsp;&nbsp;&nbsp;</a>
+        <div class="dropdown">
+          <img src="static/profilePictures/{{ session['userID'] }}.jpg" class="rounded-circle" style="height: 28px; width: 28px;" id="dropdownAccMenu" data-bs-toggle="dropdown" aria-expanded="false"></i>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccMenu">
+            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+          </ul>
+        </div>
+      {% else %}
+        <a class="btn nav-link"  data-bs-toggle="modal" data-bs-target="#loginModal" style="color: #22A7F2;">Login</a>
+        <button class="btn text-white rounded-pill" type="button" data-bs-toggle="modal" data-bs-target="#registerModal" style="background-color: #22A7F2;">Register</button>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- Modals and Alerts -->
+{% include 'includes/_loginModal.html' %}
+{% include 'includes/_registerModal.html' %}
+{% include 'includes/_errorAlert.html' %}
